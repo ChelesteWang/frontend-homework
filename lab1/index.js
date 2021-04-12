@@ -40,19 +40,18 @@ function changeColor(event) {
         })
 }
 
-function randomNum(minNum, maxNum) {
-    switch (arguments.length) {
-        case 1:
-            return parseInt(Math.random() * minNum + 1, 10);
-        case 2:
-            return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
-        default:
-            return 0;
-
-    }
-}
-
 function randomData(number) {
+    function randomNum(minNum, maxNum) {
+        switch (arguments.length) {
+            case 1:
+                return parseInt(Math.random() * minNum + 1, 10);
+            case 2:
+                return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
+            default:
+                return 0;
+
+        }
+    }
     let fristName = ['李', '王', '张', '赵', '孙', '朱', '刘', '陈', '白', '付']
     let lastName = ['金花', '一明', '无忌', '微', '建国', '英军']
     let gender = ['男', '女']
@@ -74,7 +73,6 @@ function createTable() {
     let tr, td;
     let start = (page - 1) * line
     let end = start + line
-    //  end = (end > num)? num : end;
     dataList = data.slice(start, end)
     for (item in dataList) {
         tr = document.createElement("tr");
@@ -154,7 +152,7 @@ function createSelect() {
 }
 
 let defaultColor = "#333333";
-let num = prompt("需要获取多少条数据","100")
+let num = prompt("需要获取多少条数据", "100")
 let data = randomData(num)
 let page = 1
 let line = 10
