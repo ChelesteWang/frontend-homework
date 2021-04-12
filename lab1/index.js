@@ -170,7 +170,7 @@ function setLine(_line) {
 }
 
 function changeLine() {
-    _line = document.querySelector("#allPut > div:nth-child(1) > input.form-control").value
+    _line = parseInt(document.querySelector("#allPut > div:nth-child(1) > input.form-control").value)
     line = _line
     if (_line <= data.length && _line > 0) {
         setLine(parseInt(_line))
@@ -183,7 +183,7 @@ function changeLine() {
 }
 
 function changePage() {
-    _page = document.querySelector("#allPut > div:nth-child(2) > input").value
+    _page = parseInt(document.querySelector("#allPut > div:nth-child(2) > input").value)
     if (_page <= len && _page > 0) {
         setPage(_page)
     }
@@ -195,7 +195,7 @@ function changePage() {
 function selectPage() {
     let select = document.getElementById('select')
     let index = select.selectedIndex
-    _page = select.options[index].value
+    _page = parseInt(select.options[index].value)
     if (_page <= len && _page > 0) {
         setPage(_page)
     }
