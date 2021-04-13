@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>拼图</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link href="" rel="stylesheet">
+    <style type="text/css">
+        .hig {
+            border: 2px dotted #fff
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align: center;">拼图</h1>
+    <script type="text/javascript">
+        ; (function () {
+            var Divider = (function () {
+                var container, ops, map, width, perWidth, height, perHeight;
+                var defaults = {
+                    src: '',
+                    cols: 4,
+                    rows: 4,
+                    max: 500,
+                    gap: 2
+                };
+                var init = function (params) {
+                    var params = params || {};
+                    ops = extend(defaults, params);
+                    if (!ops.src) {
+                        console.log("没有获取到图片");
+                        return;
+                    }
+                    container = document.createDocumentFragment();
+                    map = [];
+                    particle();
+                }
+                var particle = function () {
+                    let { max, rows, cols, src } = ops
+                    var img = new Image();
+                    img.src = src;
+                    img.onload = function () {
+                        var fix = fixSize(this.width, this.height, max)
+                        width = fix.width;
+                        height = fix.height;
+                        perWidth = Math.round(width / cols);
+                        perHeight = Math.round(height / rows);
+                        for (var i = 0; i < rows; i++) {
+                            var offsetY = i * perHeight;
+                            for (var j = 0; j < cols; j++) {
+                                var offsetX = (j % cols) * perWidth;
+                                map.push({
+                                    x: offsetX,
+                                    y: offsetY
+                                })
+                            }
+                        }
+                        map = randomArray(map);
+                        draw();
+                    }
+                }
+                var draw = function () {
+                    for (var i = 0, l = map.length; i < l; i++) {
+                        var div = document.createElement("div");
+                        div.style.cssText = ";width:" + (perWidth - ops.gap * 2) + "px;height:" + (perHeight - ops.gap * 2) + "px;background:url(" + ops.src + ") " + (-map[i].x) + "px " + (-map[i].y) + "px no-repeat;background-size:" + width + "px " + height + "px;border-radius:5px;position:absolute;top:" + map[i].y + "px;left:" + map[i].x + "px";
+                        div.className = "item";
+                        div.index = i;
+                        container.appendChild(div);
+                    }
+                    var div = document.createElement("div");
+                    div.style.cssText = "width:" + width + "px;height:" + height + "px;margin:0 auto;position:relative;";
+                    div.appendChild(container);
+                    document.body.appendChild(div);
+                    DrawSort.init(div, map);
+                }
+                var randomArray = function (arr) {
+                    return arr.sort(function () {
+                        return Math.random() - 0.5;
+                    })
+                }
+                var fixSize = function (width, height, max) {
+                    if (width < max && height < max) {
+                        return {
+                            width: width,
+                            height: height
+                        }
+                    }
+                    if (width > height) {
+                        if (width > max) {
+                            var ratio = max / width;
+                            return {
+                                width: max,
+                                height: height * ratio
+                            }
+                        } else {
+                            return {
+                                width: width,
+                                height: height
+                            }
+                        }
+                    } else {
+                        if (height > max) {
+                            var ratio = max / height;
+                            return {
+                                width: width * ratio,
+                                height: max
+                            }
+                        } else {
+                            return {
+                                width: width,
+                                height: height
+                            }
+                        }
+                    }
+                }
+                var setCols = function (col) {
+                    cols = col;
+                }
+                var setRows = function (row) {
+                    rows = row;
+                }
+                var extend = function (defaults, params) {
+                    for (var index in params) {
+                        if (params.hasOwnProperty(index)) {
+                            defaults[index] = params[index];
+                        }
+                    }
+                    return defaults;
+                }
+                return {
+                    init,
+                    setCols,
+                    setRows
+                }
+            })();
+            var DrawSort = (function () {
+                var container, items, zx, map;
+                var init = function (contain, mapx) {
+                    map = mapx || [];
+                    container = contain;
+                    items = container.childNodes;
+                    zx = 0;
+                    for (var i = 0, l = items.length; i < l; i++) {
+                        drap(items[i]);
+                    }
+                }
+                var drap = function (obj) {
+                    obj.onmousedown = function (e) {
+                        var oNear = null, ev = e || window.event;
+                        var disX = ev.pageX - this.offsetLeft - container.offsetLeft;
+                        var disY = ev.pageY - this.offsetTop - container.offsetTop;
+                        this.className = 'cur';
+                        this.style.zIndex = zx++;
+                        if (obj.setCapture) {
+                            obj.setCapture();
+                        } else {
+                            window.captureEvents(Event.MOUSEMOVE);
+                        }
+                        document.onmousemove = function (e) {
+                            var ev = e || window.event,
+                                w = ev.pageX - disX - container.offsetLeft,
+                                h = ev.pageY - disY - container.offsetTop;
+                            w < 0 && (w = 0);
+                            w >= (container.offsetWidth - obj.offsetWidth) && (w = container.offsetWidth - obj.offsetWidth);
+                            h < 0 && (h = 0);
+                            h >= (container.offsetHeight - obj.offsetHeight) && (h = container.offsetHeight - obj.offsetHeight);
+                            obj.style.top = h + "px";
+                            obj.style.left = w + "px";
+                            for (var i = 0, l = items.length; i < l; i++) {
+                                items[i].className = "cur";
+                            }
+                            oNear = findNearest(obj);
+                            oNear && (oNear.className = "hig");
+                        }
+                        document.onmouseup = function () {
+                            if (obj.releaseCapture) {
+                                obj.releaseCapture();
+                            } else {
+                                window.releaseEvents(Event.MOUSEMOVE || Event.MOUSEUP);
+                            }
+                            document.onmouseup = null;
+                            document.onmousemove = null;
+                            for (var i = 0, l = items.length; i < l; i++) {
+                                items[i].className = "";
+                            }
+                            if (oNear) {
+                                oNear.style.zIndex = zx++;
+                                startMove(obj, map[oNear.index]);
+                                startMove(oNear, map[obj.index]);
+                                oNear.index = [obj.index, obj.index = oNear.index][0];
+                            } else {
+                                startMove(obj, map[obj.index]);
+                            }
+                        }
+                    }
+                }
+                var findNearest = function (obj) {
+                    var res, distances = [], elems = [], min = 9999999, minItem;
+                    for (var i = 0, l = items.length; i < l; i++) {
+                        res = isButt(obj, items[i]);
+                        if (items[i] != obj && res) {
+                            distances.push(calDis(obj, items[i]));
+                            elems.push(items[i]);
+                        }
+                    }
+                    distances.map(function (item, i) {
+                        if (item < min) {
+                            min = item;
+                            minItem = elems[i];
+                        }
+                    })
+                    return minItem;
+                }
+                var isButt = function (a, b) {
+                    var al = a.offsetLeft,
+                        at = a.offsetTop,
+                        alw = al + a.offsetWidth,
+                        ath = at + a.offsetHeight,
+                        bl = b.offsetLeft,
+                        bt = b.offsetTop,
+                        blw = bl + b.offsetWidth,
+                        bth = bt + b.offsetHeight;
+                    if (al > blw || alw < bl || at > bth || ath < bt) {
+                        return false;
+                    }
+                    return true;
+                }
+                var startMove = function (obj, pos, onEnd) {
+                    clearInterval(obj.timer);
+                    obj.timer = setInterval(function () {
+                        doMove(obj, pos, onEnd);
+                    }, 30);
+                }
+                var doMove = function (obj, pos, onEnd) {
+                    var curL = getStyle(obj, "left"), curT = getStyle(obj, "top"), speedL = (pos.x - curL) / 5, speedT = (pos.y - curT) / 5;
+                    speedL = speedL > 0 ? Math.ceil(speedL) : Math.floor(speedL);
+                    speedT = speedT > 0 ? Math.ceil(speedT) : Math.floor(speedT);
+                    if (pos.x == curL && pos.y == curT) {
+                        clearInterval(obj.timer);
+                        onEnd && onEnd();
+                    } else {
+                        obj.style.left = curL + speedL + "px";
+                        obj.style.top = curT + speedT + "px";
+                    }
+                }
+                var getStyle = function (obj, attr) {
+                    return parseFloat(obj.currentStyle ? obj.currentStyle[attr] : getComputedStyle(obj, null)[attr]);
+                }
+                var calDis = function (a, b) {
+                    return Math.sqrt(Math.pow(a.offsetLeft + a.offsetWidth / 2 - b.offsetLeft - b.offsetWidth / 2, 2) + Math.pow(a.offsetTop + a.offsetHeight / 2 - b.offsetTop - b.offsetHeight / 2, 2));
+                }
+                return { init: init }
+            })();
+            window.Divider = window.Divider || Divider;
+        })();
+        Divider.init({
+            src: "./logo.png",
+            cols: 3,
+            rows: 3
+        });
+    </script>
+</body>
+
+</html>
